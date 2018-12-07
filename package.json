@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/PaulKinlan/medium-translations#readme",
   "dependencies": {
+    "@google-cloud/translate": "^2.1.2",
+    "commander": "^2.19.0",
     "mediumexporter": "^0.1.6"
   }
 }
