@@ -1,0 +1,22 @@
+{
+  "name": "medium-translation",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PaulKinlan/medium-translations.git"
+  },
+  "author": "Paul Kinlan",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/PaulKinlan/medium-translations/issues"
+  },
+  "homepage": "https://github.com/PaulKinlan/medium-translations#readme",
+  "dependencies": {
+    "mediumexporter": "^0.1.6"
+  }
+}
