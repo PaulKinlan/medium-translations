@@ -203,7 +203,7 @@ async function processFile(filePath, target) {
 
   const result = output.join('\n'); 
   const filePathDetails = path.parse(filePath);
-  const newFileString = `./content/translations/${target}/${filePathDetails.name}${filePathDetails.ext}`;
+  const newFileString = `./docs/translations/${target}/${filePathDetails.name}${filePathDetails.ext}`;
   const newPath = path.parse(newFileString);
 
   if(fs.existsSync(newPath.dir + '/') === false) {
@@ -212,7 +212,7 @@ async function processFile(filePath, target) {
 
   fs.writeFileSync(newFileString, result);
 
-  console.log(`Translation written to 'content/translations/${target}/${filePathDetails.name}${filePathDetails.ext}'`);
+  console.log(`Translation written to './docs/translations/${target}/${filePathDetails.name}${filePathDetails.ext}'`);
   return newPath;
 }
 
