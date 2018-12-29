@@ -2,6 +2,7 @@
 
 # To run: ./get-medium-post.sh [url] [title.markdown]
 
+hub="binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub"
 timestamp="$(date +%s)"
 
 echo "Exporting $1 to markdown"
