@@ -10,6 +10,6 @@ do
   node index.js -s $1 -t "$language" \;
   git commit -m "Addding $language translation for $1"
   git push origin "$language-$1"
-  git pull-request
+  git request-pull
   git checkout master
 done
