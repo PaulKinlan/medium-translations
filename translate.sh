@@ -2,7 +2,7 @@
 
 export GOOGLE_APPLICATION_CREDENTIALS=../key.json
 langs=( "ja" "ko" "zh" )
-alias hub=binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub
+alias hub="binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub"
 
 for language in "${langs[@]}"
 do
