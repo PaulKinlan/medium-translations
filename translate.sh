@@ -2,10 +2,10 @@
 
 export GOOGLE_APPLICATION_CREDENTIALS=../key.json
 langs=( "ja" "ko" "zh" )
-alias hub="binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub"
 
 for language in "${langs[@]}"
 do
+  alias hub="binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub"
   echo "Starting translation for $language"
   git checkout -b "$language-$1"
   node index.js -s $1 -t "$language" \;
