@@ -19,6 +19,7 @@
   "dependencies": {
     "@google-cloud/translate": "^2.1.2",
     "commander": "^2.19.0",
+    "medium-sdk": "0.0.4",
     "mediumexporter": "^0.1.6"
   }
 }
