@@ -2,7 +2,7 @@
 
 # To run: ./get-medium-post.sh [url] [title.markdown]
 
-timestamp=(date +%s)
+timestamp="$(date +%s)"
 
 echo "Exporting $1 to markdown"
 git checkout -b "new-medium-post-$timestamp"
