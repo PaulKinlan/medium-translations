@@ -7,7 +7,7 @@ timestamp="$(date +%s)"
 echo "Exporting $1 to markdown"
 git checkout -b "new-medium-post-$timestamp"
 
-npx mediumexport $1 > ./docs/$2
+npx mediumexporter $1 > ./docs/$2
 
 git add .
 git commit -m "Addding a new medium post as markdown from $1"
