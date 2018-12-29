@@ -203,11 +203,12 @@ async function processFile(filePath, target) {
 
   const result = output.join('\n'); 
   const newFileName = path.parse(filePath);
-  const newPath = `translations/${target}/${newFileName.name}${newFileName.ext}`;
-  if(fs.existsSync(newFileName.dir)) {
-    fs.mkdirSync(newFileName.dir, { recursive: true });
+  const newPath = path.join(filePath.base, `translations/${target}/${newFileName.name}${newFileName.ext}`);
+  console.log(`Checking to see if ${newPath.dir} exists`)
+  if(fs.existsSync(newPath.dir) === false) {
+    fs.mkdirSync(newPath.dir, { recursive: true });
   }
-  fs.writeFileSync(newPath, result);
+  fs.writeFileSync(newFileName.base + newFileName.dir, result);
 
   console.log(`Translation written to 'translations/${target}/${newFileName.name}.${newFileName.ext}'`);
   return newPath;
