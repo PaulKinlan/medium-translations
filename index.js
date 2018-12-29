@@ -202,15 +202,17 @@ async function processFile(filePath, target) {
   if(translateBlock.length > 0) output.push(await translateLines(translateBlock.join(' '), target));
 
   const result = output.join('\n'); 
-  const newFileName = path.parse(filePath);
-  const newPath = path.join(filePath.base, `translations/${target}/${newFileName.name}${newFileName.ext}`);
-  console.log(`Checking to see if ${newPath.dir} exists`)
-  if(fs.existsSync(newPath.dir) === false) {
-    fs.mkdirSync(newPath.dir, { recursive: true });
-  }
-  fs.writeFileSync(newFileName.base + newFileName.dir, result);
+  const filePathDetails = path.parse(filePath);
+  const newFileString = `./content/translations/${target}/${filePathDetails.name}${filePathDetails.ext}`;
+  const newPath = path.parse(newFileString);
 
-  console.log(`Translation written to 'translations/${target}/${newFileName.name}.${newFileName.ext}'`);
+  if(fs.existsSync(newPath.dir + '/') === false) {
+    fs.mkdirSync(newPath.dir + '/');
+  }
+
+  fs.writeFileSync(newFileString, result);
+
+  console.log(`Translation written to 'content/translations/${target}/${filePathDetails.name}.${filePathDetails.ext}'`);
   return newPath;
 }
 
