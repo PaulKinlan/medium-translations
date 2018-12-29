@@ -212,7 +212,7 @@ async function processFile(filePath, target) {
 
   fs.writeFileSync(newFileString, result);
 
-  console.log(`Translation written to 'content/translations/${target}/${filePathDetails.name}.${filePathDetails.ext}'`);
+  console.log(`Translation written to 'content/translations/${target}/${filePathDetails.name}${filePathDetails.ext}'`);
   return newPath;
 }
 
