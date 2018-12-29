@@ -95,8 +95,11 @@ async function translateLines(text, to) {
 
     // Find markdown image links that are broken ! []() => ![]()
     translation = translation.replace(/! \[([^\]]+)\]\(([^\)]+)\)/g,' ![$1]($2)');
+    translation = translation.replace(/！ \[([^\]]+)\]\(([^\)]+)\)/gu,' ![$1]($2)'); // Non-ascii
+    
     // Find markdown image links that are broken ! []() => ![][]
     translation = translation.replace(/! \[([^\]]+)\]\[([^\]+)])/g,' ![$1][$2]');
+    translation = translation.replace(/！ \[([^\]]+)\]\[([^\]+)])/gu,' ![$1][$2]'); // Non-ascii
     // Find markdown links where the target has spaces in the wrong place [](/ ERROR /)
     translation = translation.replace(/\[([^\]]+)\]\(\/( ([^\)]+) )\/\)/g,'[$1]($3)');
     translation = translation.replace(/\[([^\]]+)\]\u{FF08}([^\u{FF09}]+)\u{FF09}/gu,'[$1]($2)');
@@ -116,7 +119,6 @@ async function translateLines(text, to) {
     translation = translation.replace(/\[([^\]]+)\]\(([^\)]+)\) \{([^\}]+)\}/g,'[$1]($2){$3}');
    
     // Bodge for Japan
-    //translation = translation.replace(/\S(\{: \.page-title \})/gm,' $1');
     translation = translation.replace(/^(#+)([^#\s])/gm,'$1 $2');
     //translation = translation.replace(/^(#.+?)([^\s])({:[^}]+})([\r\n]|$)/gm,'$1$2 $3');
     translation = translation.replace(/：/gu,':');
