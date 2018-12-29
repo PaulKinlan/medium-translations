@@ -3,7 +3,7 @@
 export GOOGLE_APPLICATION_CREDENTIALS=../key.json
 langs=( "ja" "ko" "zh" )
 hub="binaries/linux-64/hub-linux-amd64-2.7.0/bin/hub"
-timestamp=(date +%s)
+timestamp=$(date +%s)
 
 for language in "${langs[@]}"
 do
