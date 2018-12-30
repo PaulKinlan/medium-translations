@@ -58,19 +58,7 @@
         logToToast(err);
       }
     };
-    const populateFields = () => {
-      const url = new URL(location);
-      const urlsInText = getUrls(url.searchParams.get('text') || "");
-      const params = {
-        url: url.searchParams.get('url') || ((urlsInText.size > 0) ? urlsInText.values().next().value : ''),
-        description: url.searchParams.get('text'),
-        title: url.searchParams.get('title')
-      };
-      if (params.url === undefined) return;
-      controls['name'].value = params.title;
-      controls['url'].value = params.url;
-      controls['description'].value = params.description;
-    }
+    
     const htmlEncode = (str) => {
       str = str.replace(/[^\x00-\x7F]/g, function (char) {
         var hex = char.charCodeAt(0).toString(16);
@@ -127,7 +115,6 @@ ${htmlEncode(comment)}
 `
         createFile(fileName, body, cleanName);
       };
-      populateFields();
     }
   </script>
 </head>
