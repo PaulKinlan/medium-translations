@@ -47,7 +47,7 @@
       try {
         const token = localStorage.getItem('accessToken');
         const github = new Octokat({ 'token': token });
-        let repo = github.repos('paulkinlan', 'paul.kinlan.me');
+        let repo = github.repos('paulkinlan', 'medium-translations');
         let response = await repo.contents(filename).add({
           "message": `Created via Web - ${commitMessage}`,
           "content": btoa(jsonEncode(data)),
