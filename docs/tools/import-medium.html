@@ -64,7 +64,7 @@
 
         console.log(response);
 
-        let pr = await repo.pulls().create({
+        let pr = await repo.pulls.create({
           title: `New post '${filename}' imported from ${url}`,
           head: branchName,
           base: "master",
