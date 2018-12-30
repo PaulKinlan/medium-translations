@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" />
   <script src="https://www.gstatic.com/firebasejs/5.2.0/firebase.js"></script>
   <script src="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.js"></script>
+  <script src="https://unpkg.com/showdown@1.9.0/dist/showdown.min.js"></script>
   <script src="/medium-translations/scripts/octokat.js"></script>
   <script type="module">
     import getUrls from '/medium-translations/scripts/get-urls.bundle.mjs';
@@ -121,15 +122,23 @@
       }
       fetchMarkdownBtn.onclick = async () => {
         event.preventDefault();
+        const converter = new showdown.Converter();
         const url = document.getElementById('url').value;
         const markdownEl = document.getElementById('markdown');
         const filenameEl = document.getElementById('name');
         const details = document.getElementById('details');
+        const markdownPreview = document.getElementById('markdownPreview');
         const proxy = `https://us-central1-translation-automator.cloudfunctions.net/medium/?medium_url=${encodeURIComponent(url)}`;
         
         const story = await fetch(proxy).then(response => response.json());
         markdownEl.textContent = story.markdown.join('\n');
         filenameEl.value = new URL(story.url).pathname.split('/').splice(-1);
+
+        const html = converter.makeHtml(markdownEl.textContent);
+        const newFrameSrc = URL.createObjectURL(new Blob([html], {type: "text/html"}));
+        markdownPreview.src = newFrameSrc;
+        URL.revokeObjectURL(newFrameSrc);
+
         details.style.display = 'block';
       };
       noteForm.onsubmit = (event) => {
@@ -178,6 +187,8 @@ ${htmlEncode(markdown)}
               <textarea rows=5 cols=40 name="markdown" id=markdown class="mdc-text-field__input"></textarea>
               <label for="markdown" class="mdc-floating-label">Markdown:</label>
             </div>
+
+            <iframe sandbox id=markdownPreview></iframe>
 
             <input type="submit" value="Save" class="mdc-button">
           </div>

@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+const functions = require('firebase-functions');
 const medium = require('./medium-app');
 const translate = require('./translate-app');
 
