@@ -123,11 +123,13 @@
         event.preventDefault();
         const url = document.getElementById('url').value;
         const markdownEl = document.getElementById('markdown');
+        const filenameEl = document.getElementById('name');
         const details = document.getElementById('details');
         const proxy = `https://us-central1-translation-automator.cloudfunctions.net/medium/?medium_url=${encodeURIComponent(url)}`;
         
         const story = await fetch(proxy).then(response => response.json());
         markdownEl.textContent = story.markdown.join('\n');
+        filenameEl.value = new URL(story.url).pathname.split('/').splice(-1);
         details.style.display = 'block';
       };
       noteForm.onsubmit = (event) => {
@@ -180,6 +182,7 @@ ${htmlEncode(markdown)}
             <input type="submit" value="Save" class="mdc-button">
           </div>
         </form>
+
         <button id=authenticate class="mdc-button">Authenticate</button>
        
         <div class="mdc-snackbar mdc-snackbar--align-start"
