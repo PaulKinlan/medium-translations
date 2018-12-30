@@ -12,6 +12,6 @@ do
   node index.js -s $1 -t "$language" \;
   git add .
   git commit -m "Addding $language translation for $1"
-  $hub pull-request -p -m "Addding $language translation for $1" --labels=translation
+  $hub pull-request -p -m "Addding $language translation for $1" --labels=translation,lang-$language
   git checkout master
 done
