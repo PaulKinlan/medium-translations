@@ -47,7 +47,14 @@
       try {
         const token = localStorage.getItem('accessToken');
         const github = new Octokat({ 'token': token });
+        const branchName = `new-post-${Date.now()}`;
         let repo = github.repos('paulkinlan', 'medium-translations');
+        let masterSha = repo.commits.fetch({"sha":"master"}).items(0)
+        let branch = await repo.git.refs.create({
+          "ref": `refs/heads/${branchName}`,
+          "sha": `${masterSha.sha}`
+        });
+
         let response = await repo.contents(filename).add({
           "message": `Created via Web - ${commitMessage}`,
           "content": btoa(jsonEncode(data)),
