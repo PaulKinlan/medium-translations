@@ -77,8 +77,7 @@
       } catch (err) {
         logToToast(err);
       }
-    };
-    
+    };  
     const htmlEncode = (str) => {
       str = str.replace(/[^\x00-\x7F]/g, function (char) {
         var hex = char.charCodeAt(0).toString(16);
@@ -105,6 +104,7 @@
     onload = () => {
       const noteForm = document.getElementById('noteform');
       const authenticate = document.getElementById('authenticate');
+      const fetchMarkdownBtn = document.getElementById('fetchMarkdownBtn');
       const els = document.querySelectorAll('.mdc-text-field');
       for (let el of els) {
         let field = new mdc.textField.MDCTextField(el);
@@ -119,6 +119,16 @@
       authenticate.onclick = async () => {
         await auth();
       }
+      fetchMarkdownBtn.onclick = async () => {
+        event.preventDefault();
+        const url = document.getElementById('url').value;
+        const markdownEl = document.getElementById('markdown');
+        const proxy = `https://us-central1-translation-automator.cloudfunctions.net/medium/?medium_url=${encodeURIComponent(url)}`;
+        
+        const story = await fetch(proxy).then(response => response.body.json());
+
+        markdownEl.textContent = story.markdown.join('\n');
+      };
       noteForm.onsubmit = (event) => {
         event.preventDefault();
         if (localStorage.getItem('accessToken') === null) {
@@ -150,21 +160,26 @@ ${htmlEncode(markdown)}
         <form id=noteform>
 
           <div class="mdc-text-field mdc-text-field--fullwidth">
-            <label for="name" class="mdc-floating-label">File:</label>
-            <input class="mdc-text-field__input" type="text" name="name" id="name">
-          </div>
-
-          <div class="mdc-text-field mdc-text-field--fullwidth">
             <label for="url" class="mdc-floating-label">URL:</label>
             <input type="url" name="url" id="url" class="mdc-text-field__input">
           </div>
 
-          <div class="mdc-text-field mdc-text-field--textarea mdc-text-field--fullwidth">
-            <textarea rows=5 cols=40 name="markdown" id=markdown class="mdc-text-field__input"></textarea>
-            <label for="markdown" class="mdc-floating-label">Markdown:</label>
-          </div>
+          <button id=fetchMarkdownBtn class="mdc-button">Fetch Markdown</button>
+    
+          <div id=detals>
+            <div class="mdc-text-field mdc-text-field--fullwidth">
+              <label for="name" class="mdc-floating-label">File:</label>
+              <input class="mdc-text-field__input" type="text" name="name" id="name">
+            </div>
 
-          <input type="submit" value="Save" class="mdc-button">
+            
+            <div class="mdc-text-field mdc-text-field--textarea mdc-text-field--fullwidth">
+              <textarea rows=5 cols=40 name="markdown" id=markdown class="mdc-text-field__input"></textarea>
+              <label for="markdown" class="mdc-floating-label">Markdown:</label>
+            </div>
+
+            <input type="submit" value="Save" class="mdc-button">
+          </div>
         </form>
         <button id=authenticate class="mdc-button">Authenticate</button>
        
