@@ -48,8 +48,8 @@
         const token = localStorage.getItem('accessToken');
         const github = new Octokat({ 'token': token });
         const branchName = `new-post-${Date.now()}`;
-        let repo = github.repos('paulkinlan', 'medium-translations').fetch();
-        let masterSha = repo.commits.fetch({"sha":"master"}).items(0)
+        let repo = await github.repos('paulkinlan', 'medium-translations').fetch();
+        let masterSha = await repo.commits.fetch({"sha":"master"}).items(0)
         let branch = await repo.git.refs.create({
           "ref": `refs/heads/${branchName}`,
           "sha": `${masterSha.sha}`
