@@ -27,8 +27,8 @@
         // This gives you a GitHub Access Token. You can use it to access the GitHub API.
         var token = result.credential.accessToken;
         localStorage.setItem('accessToken', token);
-        localStorage.setItem('user', result.user);
-        logToToast(`Welcome ${result.user}`);
+        localStorage.setItem('user', JSON.stringify(result.user));
+        logToToast(`Welcome ${result.user.displayName}`);
         return result;
       } catch (error) {
         // Handle Errors here.
