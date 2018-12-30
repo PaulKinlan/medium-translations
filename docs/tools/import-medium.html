@@ -43,7 +43,7 @@
         logToToast(`Unable to login: ${errorMessage}`)
       }
     };
-    const createFile = async (filename, data, commitMessage) => {
+    const createFile = async (filename, url, data, commitMessage) => {
       try {
         const token = localStorage.getItem('accessToken');
         const github = new Octokat({ 'token': token });
@@ -61,6 +61,18 @@
           "content": btoa(jsonEncode(data)),
           "branch": branchName
         });
+
+        console.log(response);
+
+        let pr = await repo.pulls().create({
+          title: `New post '${filename}' imported from ${}`,
+          head: branchName,
+          base: "master",
+          content: "Please review this file to make sure the markdown render correctly"
+        });
+
+        console.log(pr);
+
         logToToast('Posted');
       } catch (err) {
         logToToast(err);
@@ -121,7 +133,7 @@
         const body = `
 ${htmlEncode(markdown)}
 `
-        createFile(fileName, body, cleanName);
+        createFile(fileName, url, body, cleanName);
       };
     }
   </script>
