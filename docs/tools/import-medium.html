@@ -108,10 +108,10 @@
         const name = document.getElementById('name').value;
         const cleanName = name.replace(/[^a-zA-Z0-9\-_]/g, '-').replace(/-{2,}/g,'');
         const url = document.getElementById('url').value;
-        const comment = document.getElementById('comment').value;
+        const markdown = document.getElementById('markdown').value;
         const fileName = `docs/${cleanName}.markdown`.toLowerCase();
         const body = `
-${htmlEncode(comment)}
+${htmlEncode(markdown)}
 `
         createFile(fileName, body, cleanName);
       };
