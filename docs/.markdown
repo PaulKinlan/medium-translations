@@ -1,0 +1,219 @@
+
+
+# Cloud IoT step-by-step: Connecting Raspberry PI + Python
+
+
+
+Hi friends!
+
+So you&#x2019;ve got an awesome idea to connect a Raspberry Pi to a weather station in your backyard so you can automate opening and closing your windows when it&#x2019;s going to rain. Oh and while you&#x2019;re at it, you&#x2019;re going to hook up a microcontroller like an ESP32 to turn your sprinklers on and off when it&#x2019;s a bit too hot out. How about never forgetting to turn off your oven again!
+
+So now what? There are [plenty](https://www.raspberrypi.org/blog/build-your-own-weather-station/) [of](https://weather.com/news/news/how-make-weather-station-pro-20130731/) [tutorials](https://makezine.com/2015/11/20/build-your-own-arduino-weather-station/) out there on building a weather station. Nice list of components, some of them are pretty good about physically connecting it, others kind of gloss over it a bit and you have to search around to piece everything together. Some go a step further and tell you how to connect it up to the Cloud! Eureka! Now we&#x2019;re talking. But a lot of the ones that go that far are really long, no table of contents so you have to kind of search through all the pieces to find what you need. And rarely do they fill in all the gaps for a specific use case.
+
+The goal of this blog, is to start small, and focused (even though it still feels kinda long). I want you, by the end of this, to have a step-by-step guide to connecting your Raspberry Pi to Google&#x2019;s Cloud Platform. There&#x2019;s a TON of stuff to do beyond that, but like I said, start small. I&#x2019;m not going to go into even close to the full features that our IoT platform has to offer. Even with regards to communication with devices. I&#x2019;m ONLY covering one way, device to Cloud communication. But I want to enable you to bring your project to the Cloud. Taking that first step is all about being able to see your device talking to the Cloud.
+
+After I get this covered, I&#x2019;ll start building up similar tutorials. More things you can do with devices like two-way communication. How to move data around inside the Cloud Platform, how and where to store the data for different use-cases. How to run basic analysis. How to train a machine learning model in the cloud with your data.
+
+In this tutorial, note that for some folks, the level of detail I go into will be way more than you need. For example, in the Pi setup basics, I go into a lot of detail around things like, changing the font of the terminal to make it easier to read. I have set up logical headings so it&#x2019;s easy to bounce to the parts of the tutorials that you need to get up and running.
+
+I used a Pi 3+ for the tutorial, but from the library dependency setup portion down, this will also work with a Raspberry Pi Zero W. If you want to setup your Pi Zero for this, but haven&#x2019;t set one up before, I highly recommend [this guide](https://learn.adafruit.com/raspberry-pi-zero-creation/overview). And then skip down to the dependency section in this post.
+
+## Table of Contents:
+
+* [Pi setup basics](https://medium.com/p/2f27a2893ab5#c01b)
+
+* [Library dependency setup](https://medium.com/p/2f27a2893ab5#50cb)
+
+* [Preparing the Google Cloud Platform](https://medium.com/p/2f27a2893ab5#7f07)
+
+* [Code](https://medium.com/p/2f27a2893ab5#ed16)
+
+### Pi setup basics
+
+Some of these steps might be slightly different for you, I have some things I like to do to my Pi just for quality of life. If you already know how to setup WiFi, and adjust your Pi to how you like it, then you can safely skip this bit and go straight to the library dependency setup.
+
+Direct connect to your Pi, and hook the HDMI.
+
+Depending on the monitor you&#x2019;re on, or how old you are, I change the font in my terminal to Monospace 14. Makes it much easier to read. I also change my keyboard layout in the preferences to US->English. Default is UK->English which has symbols in unexpected places for me.
+
+One thing you definitely need to do if you&#x2019;re using WiFi, is be sure that in the settings on the Pi, your WiFi country is set to wherever you are. If it&#x2019;s set to Germany, and you&#x2019;re in the United States, it&#x2019;s likely not going to work. Sometimes different combinations of countries work, but it&#x2019;s pretty random, and better to just set it.
+
+Next step is to be sure your Pi can connect to the internet. Either plug in an ethernet cable, or if you&#x2019;re using WiFi, scan for networks your Pi can see. Run this from a terminal on the Pi:
+
+    sudo iwlist wlan0 scan
+
+Pick the one you want to use, remember the SSID.
+
+Note that this will override any existing WiFi settings you had, so if you want to preserve the current settings, move the file to be a backup. This can be done with:
+
+    mv /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf.bak
+
+Then run:
+
+    sudo vi /etc/wpa_supplicant/wpa_supplicant.conf
+
+You&#x2019;ll replace the contents of that file if there&#x2019;s anything in there with one of two things. If your WiFi has a password, then use this:
+
+    ctrl_interface=/var/run/wpa_supplicant
+    network={
+        ssid=&#x201d;<ssid>&#x201d;
+        psk=&#x201d;<password for network>&#x201d;
+    }
+
+If there&#x2019;s no password:
+
+    ctrl_interface=/var/run/wpa_supplicant
+    network={
+        ssid=&#x201d;<ssid>&#x201d;
+        key_mgmt=NONE
+    }
+
+Now that you have a configuration in there for your WiFi, you need to restart that service to engage the WiFi:
+
+    sudo wpa_cli reconfigure
+
+Now you should be able to verify that you have WiFi by running:
+
+    ifconfig wlan0 | grep inet
+
+You should have an IP address. Depending on your WiFi&#x2019;s configuration it&#x2019;s probably something that starts with 168.1 or 127.1 (as long as it&#x2019;s not 127.1.1.1 which isn&#x2019;t right for this).
+
+If it fails, and you don&#x2019;t have an IP address. You can try:
+
+    wpa_supplicant -iwlan0 -c /etc/wpa_supplicant.conf & dhcpcd wlan0
+
+This hard resets the WiFi. If it STILL doesn&#x2019;t work, try rebooting the Pi completely with:
+
+    sudo reboot
+
+Now that you&#x2019;re Pi can talk to the internet, let&#x2019;s get it setup to have all the Python dependencies we need.
+
+### Library dependency setup
+
+If you&#x2019;re new to Linux, Pi, and all things apt-get, each of these steps will do some variation of spew out a bunch of text about what you&#x2019;re asking for, and what dependencies it relies on, to tell you what it&#x2019;s going to install on your Pi. If you want to know what it all means, the internet pages for each library are pretty good about explaining what the library is all about. I&#x2019;ll TL;DR each one just to blurb on what the particular library is used for.
+
+First up, make sure we&#x2019;re current:
+
+    sudo apt-get update
+
+This makes sure that the list of places your Pi will be getting its libraries from is current. Sometimes these repositories move around, get deprecated, etc, so it&#x2019;s always good to run this when starting a project. Note that if you&#x2019;re using Raspbian, that they&#x2019;re constantly updating it as well, so some of these dependencies may just say they&#x2019;re already there. That&#x2019;s totally fine, this is just, for the sake of completeness, all the things you need.
+
+Next up is to get the pieces we need to handle the secure connection with IoT Core. Authentication is done via [JWT](https://jwt.io/) instead of user/password as it&#x2019;s way more secure. To handle that, the library is pyjwt, which depends on a Python library called cryptography. Why am I telling you this? Because to install those pieces, you need certain base libraries. To get them, run each of these commands:
+
+    sudo apt-get install build-essential
+    sudo apt-get install libssl-dev
+    sudo apt-get install python-dev
+    sudo apt-get install libffi-dev
+
+Note here, that depending on your version of Python, being able to install one of the libraries, cryptography, might require 3.x. Go ahead and try to go through everything with whatever version you have of Python, but if you get compile errors on the step when you get to sudo pip install cryptography then you&#x2019;ll need to run all these pip installs with pip3 instead of just pip so you&#x2019;re using Python 3.x. I&#x2019;ve run it recently with Python 2.7.13 and it appears they&#x2019;ve cleaned up a bunch, so you&#x2019;ll get messages for a few of these like Requirement already satisfied: <library>. I&#x2019;m just including all the manual library additions for completeness.
+
+For this demo, we&#x2019;re using MQTT, so we need the library that allows us to use that protocol, [paho-mqtt](http://www.steves-internet-guide.com/into-mqtt-python-client/). Run:
+
+    sudo pip install paho-mqtt
+
+For our encryption we&#x2019;re using pyjwt. Run:
+
+    sudo pip install [pyjwt](https://pyjwt.readthedocs.io/en/latest/)
+
+For crypto, the [cryptography](https://cryptography.io/en/latest/) library is the dependency for our JWT library. Run:
+
+    sudo pip install cryptography
+
+And finally, I&#x2019;m using a [Sense HAT](https://www.adafruit.com/product/2738) for my telemetry data. Just makes it nice and easy since it provides telemetry sensors, has a nice API, and the library is pre-installed on the Pi model 3. If you&#x2019;re not using a Pi that has it installed, just run:
+
+    sudo apt-get install sense-hat
+
+Now your device should be all set (minus code, coming later).
+
+### Preparing the Google Cloud Platform
+
+If you&#x2019;ve never done this before, then go to Google&#x2019;s Cloud Platform [landing page](https://cloud.google.com) and click through the &#x201c;Try now&#x201d; button. It&#x2019;s the most seamless if you have a gmail address, but you can still do this if you don&#x2019;t have one. You can go [here](https://accounts.google.com/signup/v2/webcreateaccount?flowName=GlifWebSignIn&flowEntry=SignUp&nogm=true) and create a Google account using any email address.
+
+Once the account is all setup, head to the [console](https://console.cloud.google.com/). First step will be to set up [billing](https://console.cloud.google.com/billing). Keep in mind, setting up the Cloud project if it&#x2019;s the first time you&#x2019;re doing it, gives you $300 in Cloud credits, and there&#x2019;s a generous free tier so while you&#x2019;re trying things out, you&#x2019;re unlikely to hit any pay walls.
+
+First step is to enable Cloud IoT. Number of ways to get there:
+
+![Search Bar](https://cdn-images-1.medium.com/max/2000/1*D7UdAAmetJPKwZMywOoQFQ.png)*Search Bar*
+
+1) Put IoT Core into the search bar in the console
+2) Select it from the hamburger menu in the upper left. IoT Core is down near the bottom. 
+3)Click [this](http://console.cloud.google.com/iot) link.
+
+Clicking the enable button will grant the appropriate permissions for the default security rules to allow your user to use IoT Core. If you&#x2019;re wanting to do it by hand, be sure the user you&#x2019;re going to use for your IoT work has permission to publish to Pub/Sub. IoT Core bridges the device messages to Pub/Sub for you, which means you need to have permission to write. These permissions are handled in the IAM part of the console. There be dragons. I would only suggest doing that if you&#x2019;re really comfortable with Google Cloud Platform.
+
+Next we&#x2019;ll create your registries where you want your IoT devices to live. Registries are logical groupings of devices. So if you&#x2019;re doing like, a smart building infrastructure, each registry might represent a building&#x2019;s worth of devices.
+
+![](https://cdn-images-1.medium.com/max/2000/1*abNFOKDjHx9_VBKOKGO16g.png)
+
+Easiest path is to create a device registry from the IoT Core console page, and as part of that process, in the drop-down where it asks for a Default telemetry topic, you can elect to create a Pub/Sub topic inline. Select the region closest to you, and by default it enables MQTT and HTTP protocols. Easiest to leave that alone unless you know you&#x2019;ll only be using one vs. the other. The example code in this blog uses MQTT.
+
+Now we need to create out device representation in IoT Core. In the page that opened when you created your registry, click on the Create Device button.
+
+Give it an id, and leave all the options alone. For the SSL certificate, we&#x2019;ll create an RSA with x509 wrapper here, but if you want to look at the other options, you can see how to create them [here](https://cloud.google.com/iot/docs/how-tos/credentials/keys).
+
+The default install of Raspbian has openssl installed. If you&#x2019;re running a custom OS on the Pi and it doesn&#x2019;t have openssl installed, you should be able to just run this off the Pi, and put the private key on it later. To create the key, run the following:
+
+    openssl req -x509 -newkey rsa:2048 -keyout demo_private.pem -nodes -out demo.pub -subj &#x201c;/CN=unused&#x201d;
+
+You can either upload the key directly, or copy/paste the contents of the key. There&#x2019;s two radio buttons on the device page to pick which way you want to do it.
+
+If you want to upload, click the radio button on the create device page for Upload. Browse to and select the demo.pub key. Scroll down and click the Create button. You should then see your newly created device in the list on the registry details page.
+
+If you&#x2019;ve run the openssl commands on a device that can&#x2019;t run the webpage, leave the radio button on manual, and on your device run:
+
+    cat demo.pub
+
+and copy everything (including the tags) between:
+
+    -----BEGIN PUBLIC KEY-----
+
+    -----END PUBLIC KEY-----
+
+and paste it into the text box for the Public key value.
+
+This handles the auth from the Google side confirming your device is okay to talk to Google. Last security piece is to grab the Google roots.pem file so your device knows it&#x2019;s talking to Google. Again, on the Pi if possible, off the Pi and transfer it over if not, run:
+
+    wget [https://pki.google.com/roots.pem](https://pki.google.com/roots.pem)
+
+One last thing to setup. Pub/Sub is efficient in that, if nothing is listening to the Pub/Sub topic, any messages sent to that topic won&#x2019;t be stored. Since subscriptions don&#x2019;t go into the past to pick up messages, there&#x2019;s no reason to store them if no one&#x2019;s listening. So enter Pub/Sub into the search field on the Cloud Platform console, or pick Pub/Sub from the hamburger menu to open up the Pub/Sub page. You should see at least the topic you created above listed here.
+
+![](https://cdn-images-1.medium.com/max/2000/1*Cy2QcpBW-0VinybMWuae4A.png)
+
+Click on the 3 dot menu on the right, and pick New subscription. Give it an id.
+
+Now you have all the pieces setup to get your device talking to Google Cloud Platform. A few last bits with the code itself. We&#x2019;re almost there!
+
+### Code
+
+The code can be found on my [GitHub](https://github.com/GabeWeiss/IoT_Core_Quick_Starts). 01_guide.html is an abbreviated version of this blog post. If you need to find things later, it may well be faster without the talking through things here to just access that guide and pick up what you need. 01_basics.py is the basic code you want to get and run. As I mentioned above, it uses the Sense HAT to gather the telemetry data. So if you have one, you should be able to modify the variable block in the code to point to the various pieces you&#x2019;ve setup and just run it.
+
+![](https://cdn-images-1.medium.com/max/2000/1*bdEoRjxL0Pxf52Y5Yjrmsg.gif)
+
+The ssl_private_key_filepath is the full path to the private half of the key we created: demo_private.pem. The root_cert_filepath is the full path to the roots.pem we grabbed using wget above. project_id is the Google Cloud Platform project id that your device was registered to. gcp_location is the region you picked when creating the registry. registry_id and device_id are the ids you gave above when creating those pieces.
+
+If you want to use something other than the Sense HAT then comment out any reference to sense and replace with whatever you want to use.
+
+Last piece, is I have commented out the actual publish line of code so you can test to be sure everything ELSE is working before you start spamming messages into the Cloud. That&#x2019;s down around line 99 (as of the time of publishing this blog). I&#x2019;d suggest running first, then uncommenting that line.
+
+Now you should be able to run:
+
+    python3 01_basics.py
+
+If it&#x2019;s working, you should see messages on the console like:
+
+    on_connect: no error
+
+And then:
+
+    on_publish
+    <a json blob with temperature, pressure and humidity if using the Sense HAT>
+
+If all that&#x2019;s working right, then go ahead and uncomment the publish line in the code, re-run it, and then after a bit (there IS a delay before Pub/Sub will return values using the command line SDK, but the actual publish time is faster than this) you can verify by running this command anywhere you have the gcloud SDK installed (if you don&#x2019;t, go [here](https://cloud.google.com/sdk/install) for instructions on installing it):
+
+    gcloud beta pubsub subscriptions pull --auto-ack <subscription id from Preparing the Google Cloud Platform section>
+
+If all has gone well, you should see your messages showing up there!
+
+Thanks for reading, now go connect your device to the Cloud! Think of a project, tell me your ideas.
+
+If you have any questions, about a project idea, the Cloud or IoT, or anything, please don&#x2019;t hesitate to ask in the comments below, or reach out to me on [Twitter](https://twitter.com/GabeWeiss_)!
