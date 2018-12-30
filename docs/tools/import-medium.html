@@ -65,7 +65,7 @@
         console.log(response);
 
         let pr = await repo.pulls().create({
-          title: `New post '${filename}' imported from ${}`,
+          title: `New post '${filename}' imported from ${url}`,
           head: branchName,
           base: "master",
           content: "Please review this file to make sure the markdown render correctly"
