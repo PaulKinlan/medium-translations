@@ -51,7 +51,7 @@
         let response = await repo.contents(filename).add({
           "message": `Created via Web - ${commitMessage}`,
           "content": btoa(jsonEncode(data)),
-          "branch": `new-post-${Date.now}`
+          "branch": `new-post-${Date.now()}`
         });
         logToToast('Posted');
       } catch (err) {
