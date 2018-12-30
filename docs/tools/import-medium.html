@@ -136,7 +136,11 @@
 
         const html = converter.makeHtml(markdownEl.textContent);
         const newFrameSrc = URL.createObjectURL(new Blob([html], {type: "text/html"}));
-        markdownPreview.src = newFrameSrc;
+        const sandbox = document.createElement('iframe');
+        sandbox.sandbox = "";
+        sandbox.src = newFrameSrc;
+        markdownPreview.innerHTML = '';
+        markdownPreview.appendChild(sandbox);
         URL.revokeObjectURL(newFrameSrc);
 
         details.style.display = 'block';
@@ -188,7 +192,9 @@ ${htmlEncode(markdown)}
               <label for="markdown" class="mdc-floating-label">Markdown:</label>
             </div>
 
-            <iframe sandbox id=markdownPreview></iframe>
+            <div id="markdownPreview">
+
+            </div>
 
             <input type="submit" value="Save" class="mdc-button">
           </div>
