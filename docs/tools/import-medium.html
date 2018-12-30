@@ -125,7 +125,7 @@
         const markdownEl = document.getElementById('markdown');
         const proxy = `https://us-central1-translation-automator.cloudfunctions.net/medium/?medium_url=${encodeURIComponent(url)}`;
         
-        const story = await fetch(proxy).then(response => response.body.json());
+        const story = await fetch(proxy).then(response => response.json());
 
         markdownEl.textContent = story.markdown.join('\n');
       };
